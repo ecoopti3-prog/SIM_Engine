@@ -1,0 +1,52 @@
+name: Sim Engine — Diamond Validation
+
+on:
+  # Runs daily after Cycle 4 (diamonds are identified in Cycle 4 at 23:00)
+  schedule:
+    - cron: '30 23 * * *'   # 23:30 UTC — after Cycle 4 completes
+
+  # Manual trigger for testing or re-running specific ideas
+  workflow_dispatch:
+    inputs:
+      idea_id:
+        description: 'Specific idea UUID to simulate (leave empty for all new diamonds)'
+        required: false
+        default: ''
+      force_all:
+        description: 'Force re-run on all diamonds (true/false)'
+        required: false
+        default: 'false'
+
+jobs:
+  sim_diamonds:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout sim_engine
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install pydantic scipy numpy supabase python-dotenv
+
+      - name: Run Sim Engine on new diamonds
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          python sim_engine/run_sim_on_diamonds.py \
+            --idea-id "${{ github.event.inputs.idea_id }}" \
+            --force-all "${{ github.event.inputs.force_all }}"
+
+      - name: Report results
+        if: always()
+        run: |
+          echo "Sim Engine completed. Results pushed to Supabase sim_results table."
+          echo "HypothesisGenerator will read these in next Cycle 4."

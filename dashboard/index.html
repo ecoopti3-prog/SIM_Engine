@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SimEngine — Physics Falsification Dashboard</title>
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111418;
+    --surface2: #161b22;
+    --border: #21262d;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --pass: #3fb950;
+    --fail: #f85149;
+    --marginal: #d29922;
+    --nodata: #58a6ff;
+    --accent: #1f6feb;
+    --font: 'SF Mono', 'Fira Code', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 13px; }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  header h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+  header .subtitle { color: var(--text2); font-size: 11px; }
+  .badge { background: var(--accent); color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 10px; }
+
+  .top-bar {
+    padding: 12px 24px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex; gap: 24px; align-items: center; flex-wrap: wrap;
+  }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat .val { font-size: 22px; font-weight: 700; }
+  .stat .lbl { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; }
+  .pass-c  { color: var(--pass); }
+  .fail-c  { color: var(--fail); }
+  .marg-c  { color: var(--marginal); }
+  .info-c  { color: var(--nodata); }
+
+  .layout { display: grid; grid-template-columns: 320px 1fr; height: calc(100vh - 110px); }
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+  .main { overflow-y: auto; padding: 20px 24px; }
+
+  .idea-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  .idea-item:hover { background: var(--surface2); }
+  .idea-item.active { background: #1f2937; border-left: 3px solid var(--accent); }
+  .idea-item .title { font-size: 12px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .idea-item .meta { display: flex; gap: 8px; align-items: center; }
+  .status-pill {
+    padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 600;
+  }
+  .pill-pass    { background: rgba(63,185,80,.15);  color: var(--pass); }
+  .pill-fail    { background: rgba(248,81,73,.15);   color: var(--fail); }
+  .pill-marginal{ background: rgba(210,153,34,.15);  color: var(--marginal); }
+  .pill-insuf   { background: rgba(88,166,255,.15);  color: var(--nodata); }
+  .score-mini   { font-size: 11px; color: var(--text2); }
+
+  .report-header { margin-bottom: 20px; }
+  .report-header h2 { font-size: 18px; margin-bottom: 6px; }
+  .report-header .rec {
+    display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.5px; text-transform: uppercase; margin-top: 6px;
+  }
+  .rec-proceed  { background: rgba(63,185,80,.2);  color: var(--pass); }
+  .rec-revise   { background: rgba(210,153,34,.2); color: var(--marginal); }
+  .rec-kill     { background: rgba(248,81,73,.2);  color: var(--fail); }
+  .rec-data     { background: rgba(88,166,255,.2); color: var(--nodata); }
+
+  .score-ring { display: flex; align-items: center; gap: 20px; margin: 16px 0; }
+  .ring-wrap { position: relative; width: 90px; height: 90px; }
+  .ring-wrap canvas { position: absolute; top:0; left:0; }
+  .ring-val { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 22px; font-weight: 700; }
+  .ring-lbl { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--text2); white-space: nowrap; }
+
+  .domain-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .domain-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .domain-card.card-fail    { border-color: rgba(248,81,73,.4); }
+  .domain-card.card-marginal{ border-color: rgba(210,153,34,.3); }
+  .domain-card.card-pass    { border-color: rgba(63,185,80,.3); }
+  .domain-card h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .metric-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid var(--border); font-size: 11px; }
+  .metric-row .k { color: var(--text2); }
+  .metric-row .v { font-weight: 600; }
+  .metric-row .v.red  { color: var(--fail); }
+  .metric-row .v.yel  { color: var(--marginal); }
+  .metric-row .v.grn  { color: var(--pass); }
+
+  .warnings-list { margin-top: 10px; }
+  .warn { background: rgba(248,81,73,.08); border: 1px solid rgba(248,81,73,.2); border-radius: 4px; padding: 5px 8px; margin-bottom: 5px; font-size: 11px; color: #ffa0a0; }
+  .warn.marg { background: rgba(210,153,34,.08); border-color: rgba(210,153,34,.2); color: #ffe08a; }
+
+  .falsif-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin-top: 14px;
+  }
+  .falsif-box h4 { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .falsif-eq   { font-family: monospace; background: #0d1117; padding: 6px 10px; border-radius: 4px; font-size: 11px; margin: 6px 0; color: #79c0ff; }
+  .falsif-bar  { background: var(--border); border-radius: 4px; height: 6px; margin: 8px 0; overflow: hidden; }
+  .falsif-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+  .fix-vec     { font-size: 11px; color: #a5d6ff; margin-top: 8px; line-height: 1.5; }
+
+  .sweep-chart { margin-top: 14px; }
+  .sweep-chart canvas { width: 100% !important; border-radius: 6px; }
+
+  .coupling-list { margin-top: 14px; }
+  .coupling-list h4 { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .coupling-item { background: rgba(31,111,235,.1); border: 1px solid rgba(31,111,235,.2); border-radius: 4px; padding: 7px 10px; margin-bottom: 6px; font-size: 11px; color: #a5d6ff; line-height: 1.5; }
+
+  .revision-list { margin-top: 14px; }
+  .revision-list h4 { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .revision-item { background: rgba(248,81,73,.06); border-left: 3px solid var(--fail); padding: 7px 10px; margin-bottom: 6px; font-size: 11px; color: var(--text); line-height: 1.5; }
+
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: 8px; padding: 40px;
+    text-align: center; color: var(--text2); cursor: pointer; margin: 20px;
+    transition: border-color 0.2s;
+  }
+  .upload-zone:hover { border-color: var(--accent); }
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text2); gap: 12px; }
+  .empty-state h3 { color: var(--text); }
+
+  #file-input { display: none; }
+  .load-btn {
+    background: var(--accent); color: #fff; border: none; padding: 8px 20px;
+    border-radius: 6px; cursor: pointer; font-family: var(--font); font-size: 12px;
+    margin-top: 10px;
+  }
+  .load-btn:hover { background: #388bfd; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>⚗️ SimEngine</h1>
+    <div class="subtitle">Physics Falsification Dashboard</div>
+  </div>
+  <span class="badge">L1 Analytical</span>
+  <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+    <button class="load-btn" onclick="document.getElementById('file-input').click()">Load sim_results.json</button>
+    <input type="file" id="file-input" accept=".json" onchange="loadFile(this)">
+  </div>
+</header>
+
+<div class="top-bar" id="top-bar">
+  <div class="stat"><span class="val" id="s-total">—</span><span class="lbl">Total</span></div>
+  <div class="stat"><span class="val pass-c" id="s-pass">—</span><span class="lbl">Pass</span></div>
+  <div class="stat"><span class="val fail-c" id="s-fail">—</span><span class="lbl">Fail</span></div>
+  <div class="stat"><span class="val marg-c" id="s-marg">—</span><span class="lbl">Marginal</span></div>
+  <div class="stat"><span class="val pass-c" id="s-proto">—</span><span class="lbl">→ Prototype</span></div>
+  <div class="stat"><span class="val fail-c" id="s-kill">—</span><span class="lbl">Kill</span></div>
+  <div class="stat"><span class="val info-c" id="s-avg">—</span><span class="lbl">Avg Score</span></div>
+</div>
+
+<div class="layout">
+  <div class="sidebar" id="sidebar">
+    <div style="padding:10px 16px; color:var(--text2); font-size:11px;">Load sim_results.json to begin</div>
+  </div>
+  <div class="main" id="main">
+    <div class="empty-state">
+      <div style="font-size:48px;">⚗️</div>
+      <h3>SimEngine Dashboard</h3>
+      <p>Load a sim_results.json file to visualize physics falsification results.</p>
+      <p style="font-size:11px;">Run: <code style="color:#79c0ff">python sim_engine/main.py --demo</code> to generate results.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+let data = null;
+let selectedIdx = 0;
+
+function loadFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      data = JSON.parse(e.target.result);
+      renderAll();
+    } catch(err) {
+      alert('Invalid JSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function renderAll() {
+  if (!data || !data.reports) return;
+  const s = data.summary || {};
+  document.getElementById('s-total').textContent = s.total || data.reports.length;
+  document.getElementById('s-pass').textContent  = s.pass || 0;
+  document.getElementById('s-fail').textContent  = s.fail || 0;
+  document.getElementById('s-marg').textContent  = s.marginal || 0;
+  document.getElementById('s-proto').textContent = s.proceed_to_prototype || 0;
+  document.getElementById('s-kill').textContent  = s.kill_physics || 0;
+  document.getElementById('s-avg').textContent   = (s.avg_score || 0).toFixed(1);
+  renderSidebar();
+  selectIdea(0);
+}
+
+function statusClass(s) {
+  return s === 'pass' ? 'pill-pass' : s === 'fail' ? 'pill-fail' : s === 'marginal' ? 'pill-marginal' : 'pill-insuf';
+}
+function statusText(s) {
+  return s === 'insufficient_data' ? 'NO DATA' : s.toUpperCase();
+}
+function cardClass(s) {
+  return s === 'pass' ? 'card-pass' : s === 'fail' ? 'card-fail' : s === 'marginal' ? 'card-marginal' : '';
+}
+
+function renderSidebar() {
+  const sb = document.getElementById('sidebar');
+  sb.innerHTML = data.reports.map((r, i) => `
+    <div class="idea-item ${i === selectedIdx ? 'active' : ''}" onclick="selectIdea(${i})">
+      <div class="title">${r.idea_title}</div>
+      <div class="meta">
+        <span class="status-pill ${statusClass(r.overall_status)}">${statusText(r.overall_status)}</span>
+        <span class="score-mini">${r.overall_score.toFixed(1)}/10</span>
+        <span class="score-mini" style="color:var(--text2)">${r.recommendation.replace(/_/g,' ')}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectIdea(idx) {
+  selectedIdx = idx;
+  renderSidebar();
+  renderReport(data.reports[idx]);
+}
+
+function recClass(r) {
+  if (r === 'proceed_to_prototype') return 'rec-proceed';
+  if (r === 'kill_physics') return 'rec-kill';
+  if (r === 'revise_and_resim') return 'rec-revise';
+  return 'rec-data';
+}
+function recLabel(r) {
+  return r.replace(/_/g,' ').toUpperCase();
+}
+
+function metricColor(k, v) {
+  if (k.includes('margin') && v < 10) return 'red';
+  if (k.includes('margin') && v < 25) return 'yel';
+  if (k.includes('margin') && v >= 25) return 'grn';
+  if (k.includes('exceed') || (k.includes('ratio') && v > 1.2)) return 'red';
+  return '';
+}
+
+function renderDomainCard(dr) {
+  const mkeys = Object.keys(dr.metrics).slice(0, 8);
+  const metricsHtml = mkeys.map(k => {
+    const v = dr.metrics[k];
+    const vStr = typeof v === 'number' ? (Math.abs(v) < 0.001 ? v.toExponential(2) : v.toFixed(2)) : v;
+    const col = metricColor(k, v);
+    return `<div class="metric-row"><span class="k">${k}</span><span class="v ${col}">${vStr}</span></div>`;
+  }).join('');
+
+  const warnsHtml = dr.warnings.map(w => {
+    const isFatal = w.includes('EXCEED') || w.includes('VIOLAT') || w.includes('IMPOSSIBLE');
+    return `<div class="warn ${isFatal ? '' : 'marg'}">${w}</div>`;
+  }).join('');
+
+  let falsifHtml = '';
+  if (dr.falsification) {
+    const f = dr.falsification;
+    const pct = Math.max(0, Math.min(100, f.safety_margin_pct));
+    const fillColor = pct < 0 ? 'var(--fail)' : pct < 20 ? 'var(--marginal)' : 'var(--pass)';
+    const barWidth  = pct < 0 ? 100 : pct;
+    falsifHtml = `
+      <div class="falsif-box">
+        <h4>🔬 Falsification Boundary</h4>
+        <div style="font-size:11px; color:var(--text2)">Breaking parameter: <b style="color:var(--text)">${f.breaking_param}</b></div>
+        <div style="font-size:11px; margin:4px 0">
+          Nominal: <b>${f.nominal_value} ${f.units}</b> →
+          Breaks at: <b style="color:${pct < 10 ? 'var(--fail)' : 'var(--marginal)'}">${f.breaking_value} ${f.units}</b>
+        </div>
+        <div class="falsif-bar"><div class="falsif-fill" style="width:${barWidth}%; background:${fillColor}"></div></div>
+        <div style="font-size:10px; color:var(--text2); margin-bottom:6px">Safety margin: ${f.safety_margin_pct.toFixed(1)}%</div>
+        <div class="falsif-eq">${f.equation_used}</div>
+        <div class="fix-vec">💡 ${f.fix_vector}</div>
+      </div>`;
+  }
+
+  return `
+    <div class="domain-card ${cardClass(dr.status)}">
+      <h3 style="color:${dr.status==='pass'?'var(--pass)':dr.status==='fail'?'var(--fail)':'var(--marginal)'}">
+        ${dr.domain.replace('_',' ')} · ${dr.score.toFixed(1)}/10
+      </h3>
+      <div style="font-size:10px;color:var(--text2);margin-bottom:8px">${dr.fidelity} · ${dr.solver_notes.slice(0,50)}…</div>
+      ${metricsHtml}
+      <div class="warnings-list">${warnsHtml}</div>
+      ${falsifHtml}
+    </div>`;
+}
+
+function renderSweepChart(canvasId, sweep, domain) {
+  if (!sweep || sweep.length === 0) return;
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  const xVals = sweep.map(p => p.param_value);
+  const yVals = sweep.map(p => p.metric_value);
+  const xMin = Math.min(...xVals), xMax = Math.max(...xVals);
+  const yMin = Math.min(...yVals), yMax = Math.max(...yVals);
+  const pad = { t:20, r:20, b:40, l:60 };
+  const W2 = W - pad.l - pad.r, H2 = H - pad.t - pad.b;
+
+  function cx(v) { return pad.l + (v - xMin) / (xMax - xMin + 0.001) * W2; }
+  function cy(v) { return pad.t + (1 - (v - yMin) / (yMax - yMin + 0.001)) * H2; }
+
+  // Background
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle = '#21262d'; ctx.lineWidth = 1;
+  for (let i=0; i<=4; i++) {
+    const y = pad.t + i * H2/4;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W-pad.r, y); ctx.stroke();
+    const val = yMax - i * (yMax - yMin) / 4;
+    ctx.fillStyle = '#8b949e'; ctx.font = '9px monospace';
+    ctx.fillText(val.toFixed(1), 2, y+3);
+  }
+
+  // Pass/fail coloring
+  sweep.forEach((p, i) => {
+    if (i === 0) return;
+    const x1=cx(sweep[i-1].param_value), x2=cx(p.param_value);
+    const y1=cy(sweep[i-1].metric_value), y2=cy(p.metric_value);
+    const col = p.status === 'fail' ? 'rgba(248,81,73,0.8)' : p.status === 'marginal' ? 'rgba(210,153,34,0.8)' : 'rgba(63,185,80,0.8)';
+    ctx.strokeStyle = col; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(x2, y2, 3, 0, Math.PI*2); ctx.fill();
+  });
+
+  // Labels
+  ctx.fillStyle = '#8b949e'; ctx.font = '9px monospace';
+  ctx.fillText(sweep[0].param_name, pad.l, H-5);
+  ctx.fillText(sweep[0].metric_name, 2, pad.t-5);
+}
+
+function renderReport(report) {
+  const main = document.getElementById('main');
+  const domainsHtml = report.domain_results.map(dr => renderDomainCard(dr)).join('');
+  const sweepDomains = report.domain_results.filter(dr => dr.sweep_points.length > 0);
+
+  const couplingsHtml = report.cross_domain_couplings.length ? `
+    <div class="coupling-list">
+      <h4>🔗 Cross-Domain Couplings</h4>
+      ${report.cross_domain_couplings.map(c => `<div class="coupling-item">${c}</div>`).join('')}
+    </div>` : '';
+
+  const revisionsHtml = report.revision_targets.length ? `
+    <div class="revision-list">
+      <h4>🔧 Revision Targets</h4>
+      ${report.revision_targets.map(r => `<div class="revision-item">${r}</div>`).join('')}
+    </div>` : '';
+
+  const sweepsHtml = sweepDomains.length ? `
+    <div style="margin-top:20px">
+      <h4 style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">📈 Parameter Sweeps</h4>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">
+        ${sweepDomains.map((dr, i) => `
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px">
+            <div style="font-size:11px;color:var(--text2);margin-bottom:8px">${dr.domain} — ${dr.sweep_points[0]?.param_name || ''}</div>
+            <canvas id="sweep-${i}" width="300" height="150" style="width:100%;border-radius:4px"></canvas>
+          </div>`).join('')}
+      </div>
+    </div>` : '';
+
+  main.innerHTML = `
+    <div class="report-header">
+      <h2>${report.idea_title}</h2>
+      <div style="color:var(--text2);font-size:11px;margin-bottom:6px">${report.idea_id} · ${report.timestamp.slice(0,19)}</div>
+      <span class="rec ${recClass(report.recommendation)}">${recLabel(report.recommendation)}</span>
+    </div>
+    <div class="score-ring">
+      <div class="ring-wrap">
+        <canvas id="ring-main" width="90" height="90"></canvas>
+        <span class="ring-val">${report.overall_score.toFixed(1)}</span>
+        <span class="ring-lbl">Overall</span>
+      </div>
+      ${report.domain_results.map(dr => `
+        <div class="ring-wrap">
+          <canvas id="ring-${dr.domain}" width="90" height="90"></canvas>
+          <span class="ring-val" style="font-size:16px">${dr.score.toFixed(1)}</span>
+          <span class="ring-lbl">${dr.domain.replace('_',' ')}</span>
+        </div>`).join('')}
+    </div>
+    <div class="domain-grid">${domainsHtml}</div>
+    ${couplingsHtml}
+    ${revisionsHtml}
+    ${sweepsHtml}
+  `;
+
+  // Draw score rings
+  drawRing('ring-main', report.overall_score, report.overall_status);
+  report.domain_results.forEach(dr => drawRing('ring-' + dr.domain, dr.score, dr.status));
+
+  // Draw sweep charts
+  sweepDomains.forEach((dr, i) => {
+    setTimeout(() => renderSweepChart('sweep-' + i, dr.sweep_points, dr.domain), 50);
+  });
+}
+
+function drawRing(id, score, status) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const cx = 45, cy = 45, r = 35, lw = 7;
+  const col = status === 'pass' ? '#3fb950' : status === 'fail' ? '#f85149' : status === 'marginal' ? '#d29922' : '#58a6ff';
+  const angle = (score / 10) * 2 * Math.PI;
+  ctx.clearRect(0,0,90,90);
+  // Background ring
+  ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI/2, Math.PI*1.5);
+  ctx.strokeStyle = '#21262d'; ctx.lineWidth = lw; ctx.stroke();
+  // Score arc
+  ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI/2, -Math.PI/2 + angle);
+  ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.stroke();
+}
+</script>
+</body>
+</html>

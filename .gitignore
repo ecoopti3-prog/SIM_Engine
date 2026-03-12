@@ -1,0 +1,28 @@
+# Environment & secrets — NEVER commit these
+.env
+*.env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Generated at runtime
+summaries/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
