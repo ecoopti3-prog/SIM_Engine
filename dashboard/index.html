@@ -2,451 +2,250 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>SimEngine — Physics Falsification Dashboard</title>
+<title>SimEngine — Diamond Physics Dashboard</title>
 <style>
   :root {
-    --bg: #0a0c0f;
-    --surface: #111418;
-    --surface2: #161b22;
-    --border: #21262d;
-    --text: #e6edf3;
-    --text2: #8b949e;
-    --pass: #3fb950;
-    --fail: #f85149;
-    --marginal: #d29922;
-    --nodata: #58a6ff;
-    --accent: #1f6feb;
+    --bg: #0a0c0f; --surface: #111418; --surface2: #161b22; --border: #21262d;
+    --text: #e6edf3; --text2: #8b949e; --pass: #3fb950; --fail: #f85149;
+    --marginal: #d29922; --nodata: #58a6ff; --accent: #1f6feb; --diamond: #f0c040;
     --font: 'SF Mono', 'Fira Code', monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 13px; }
-
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 24px;
-    display: flex; align-items: center; gap: 16px;
-  }
-  header h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+  header h1 { font-size: 16px; font-weight: 600; }
   header .subtitle { color: var(--text2); font-size: 11px; }
-  .badge { background: var(--accent); color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 10px; }
-
-  .top-bar {
-    padding: 12px 24px;
-    background: var(--surface2);
-    border-bottom: 1px solid var(--border);
-    display: flex; gap: 24px; align-items: center; flex-wrap: wrap;
-  }
+  .badge { background: var(--diamond); color: #000; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; }
+  .connect-bar { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 10px 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .connect-bar input { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 6px; font-family: var(--font); font-size: 11px; width: 300px; }
+  .connect-bar input:focus { outline: none; border-color: var(--accent); }
+  .connect-bar input::placeholder { color: var(--text2); }
+  .btn { background: var(--accent); color: #fff; border: none; padding: 7px 16px; border-radius: 6px; cursor: pointer; font-family: var(--font); font-size: 12px; }
+  .btn:hover { background: #388bfd; }
+  .btn.sec { background: var(--surface); border: 1px solid var(--border); color: var(--text2); }
+  .btn.sec:hover { color: var(--text); border-color: var(--accent); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+  .dot.ok { background: var(--pass); } .dot.err { background: var(--fail); }
+  #cstatus { font-size: 11px; color: var(--text2); }
+  .top-bar { padding: 12px 24px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
   .stat { display: flex; flex-direction: column; gap: 2px; }
   .stat .val { font-size: 22px; font-weight: 700; }
   .stat .lbl { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; }
-  .pass-c  { color: var(--pass); }
-  .fail-c  { color: var(--fail); }
-  .marg-c  { color: var(--marginal); }
-  .info-c  { color: var(--nodata); }
-
-  .layout { display: grid; grid-template-columns: 320px 1fr; height: calc(100vh - 110px); }
-  .sidebar {
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    overflow-y: auto;
-    padding: 8px 0;
-  }
+  .pass-c { color: var(--pass); } .fail-c { color: var(--fail); } .marg-c { color: var(--marginal); } .diam-c { color: var(--diamond); } .info-c { color: var(--nodata); }
+  .layout { display: grid; grid-template-columns: 300px 1fr; height: calc(100vh - 155px); }
+  .sidebar { background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; }
   .main { overflow-y: auto; padding: 20px 24px; }
-
-  .idea-item {
-    padding: 10px 16px;
-    cursor: pointer;
-    border-bottom: 1px solid var(--border);
-    transition: background 0.1s;
-  }
+  .sb-head { padding: 8px 16px; font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+  .idea-item { padding: 10px 16px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background .1s; }
   .idea-item:hover { background: var(--surface2); }
-  .idea-item.active { background: #1f2937; border-left: 3px solid var(--accent); }
+  .idea-item.active { background: #1f2937; border-left: 3px solid var(--diamond); }
   .idea-item .title { font-size: 12px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .idea-item .meta { display: flex; gap: 8px; align-items: center; }
-  .status-pill {
-    padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 600;
-  }
-  .pill-pass    { background: rgba(63,185,80,.15);  color: var(--pass); }
-  .pill-fail    { background: rgba(248,81,73,.15);   color: var(--fail); }
-  .pill-marginal{ background: rgba(210,153,34,.15);  color: var(--marginal); }
-  .pill-insuf   { background: rgba(88,166,255,.15);  color: var(--nodata); }
-  .score-mini   { font-size: 11px; color: var(--text2); }
-
-  .report-header { margin-bottom: 20px; }
-  .report-header h2 { font-size: 18px; margin-bottom: 6px; }
-  .report-header .rec {
-    display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 700;
-    letter-spacing: 0.5px; text-transform: uppercase; margin-top: 6px;
-  }
-  .rec-proceed  { background: rgba(63,185,80,.2);  color: var(--pass); }
-  .rec-revise   { background: rgba(210,153,34,.2); color: var(--marginal); }
-  .rec-kill     { background: rgba(248,81,73,.2);  color: var(--fail); }
-  .rec-data     { background: rgba(88,166,255,.2); color: var(--nodata); }
-
-  .score-ring { display: flex; align-items: center; gap: 20px; margin: 16px 0; }
-  .ring-wrap { position: relative; width: 90px; height: 90px; }
-  .ring-wrap canvas { position: absolute; top:0; left:0; }
-  .ring-val { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 22px; font-weight: 700; }
-  .ring-lbl { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--text2); white-space: nowrap; }
-
-  .domain-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-bottom: 20px; }
-  .domain-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px;
-  }
-  .domain-card.card-fail    { border-color: rgba(248,81,73,.4); }
-  .domain-card.card-marginal{ border-color: rgba(210,153,34,.3); }
-  .domain-card.card-pass    { border-color: rgba(63,185,80,.3); }
-  .domain-card h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-  .metric-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid var(--border); font-size: 11px; }
-  .metric-row .k { color: var(--text2); }
-  .metric-row .v { font-weight: 600; }
-  .metric-row .v.red  { color: var(--fail); }
-  .metric-row .v.yel  { color: var(--marginal); }
-  .metric-row .v.grn  { color: var(--pass); }
-
-  .warnings-list { margin-top: 10px; }
-  .warn { background: rgba(248,81,73,.08); border: 1px solid rgba(248,81,73,.2); border-radius: 4px; padding: 5px 8px; margin-bottom: 5px; font-size: 11px; color: #ffa0a0; }
-  .warn.marg { background: rgba(210,153,34,.08); border-color: rgba(210,153,34,.2); color: #ffe08a; }
-
-  .falsif-box {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px;
-    margin-top: 14px;
-  }
-  .falsif-box h4 { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-  .falsif-eq   { font-family: monospace; background: #0d1117; padding: 6px 10px; border-radius: 4px; font-size: 11px; margin: 6px 0; color: #79c0ff; }
-  .falsif-bar  { background: var(--border); border-radius: 4px; height: 6px; margin: 8px 0; overflow: hidden; }
-  .falsif-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
-  .fix-vec     { font-size: 11px; color: #a5d6ff; margin-top: 8px; line-height: 1.5; }
-
-  .sweep-chart { margin-top: 14px; }
-  .sweep-chart canvas { width: 100% !important; border-radius: 6px; }
-
-  .coupling-list { margin-top: 14px; }
-  .coupling-list h4 { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-  .coupling-item { background: rgba(31,111,235,.1); border: 1px solid rgba(31,111,235,.2); border-radius: 4px; padding: 7px 10px; margin-bottom: 6px; font-size: 11px; color: #a5d6ff; line-height: 1.5; }
-
-  .revision-list { margin-top: 14px; }
-  .revision-list h4 { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-  .revision-item { background: rgba(248,81,73,.06); border-left: 3px solid var(--fail); padding: 7px 10px; margin-bottom: 6px; font-size: 11px; color: var(--text); line-height: 1.5; }
-
-  .upload-zone {
-    border: 2px dashed var(--border); border-radius: 8px; padding: 40px;
-    text-align: center; color: var(--text2); cursor: pointer; margin: 20px;
-    transition: border-color 0.2s;
-  }
-  .upload-zone:hover { border-color: var(--accent); }
-  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text2); gap: 12px; }
-  .empty-state h3 { color: var(--text); }
-
-  #file-input { display: none; }
-  .load-btn {
-    background: var(--accent); color: #fff; border: none; padding: 8px 20px;
-    border-radius: 6px; cursor: pointer; font-family: var(--font); font-size: 12px;
-    margin-top: 10px;
-  }
-  .load-btn:hover { background: #388bfd; }
+  .idea-item .meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .pill { padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+  .p-pass { background: rgba(63,185,80,.15); color: var(--pass); }
+  .p-fail { background: rgba(248,81,73,.15); color: var(--fail); }
+  .p-marg { background: rgba(210,153,34,.15); color: var(--marginal); }
+  .p-crit { background: rgba(248,81,73,.25); color: #ff8080; }
+  .p-none { background: rgba(88,166,255,.15); color: var(--nodata); }
+  .sm { font-size: 11px; color: var(--text2); }
+  .rh { margin-bottom: 20px; }
+  .rh h2 { font-size: 18px; margin-bottom: 6px; }
+  .rec { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; margin: 4px 4px 4px 0; }
+  .rec-p { background: rgba(63,185,80,.2); color: var(--pass); }
+  .rec-r { background: rgba(210,153,34,.2); color: var(--marginal); }
+  .rec-k { background: rgba(248,81,73,.2); color: var(--fail); }
+  .rec-d { background: rgba(88,166,255,.2); color: var(--nodata); }
+  .nm-badge { display: inline-block; background: rgba(210,153,34,.2); color: var(--marginal); border: 1px solid rgba(210,153,34,.3); padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; }
+  .km-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .km { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+  .km .l { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .km .v { font-size: 20px; font-weight: 700; }
+  .dom-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap: 14px; margin-bottom: 20px; }
+  .dc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .dc.dp { border-color: rgba(63,185,80,.3); } .dc.df { border-color: rgba(248,81,73,.4); } .dc.dm { border-color: rgba(210,153,34,.3); }
+  .dc h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .mr { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid var(--border); font-size: 11px; }
+  .mr .k { color: var(--text2); } .mr .v { font-weight: 600; } .mr .vr { color: var(--fail); } .mr .vy { color: var(--marginal); }
+  .rev-list h4, .coup-list h4 { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .rev-item { background: rgba(248,81,73,.06); border-left: 3px solid var(--fail); padding: 7px 10px; margin-bottom: 6px; font-size: 11px; line-height: 1.5; }
+  .coup-item { background: rgba(31,111,235,.1); border: 1px solid rgba(31,111,235,.2); border-radius: 4px; padding: 7px 10px; margin-bottom: 6px; font-size: 11px; color: #a5d6ff; line-height: 1.5; }
+  .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text2); gap: 12px; }
+  .empty h3 { color: var(--text); }
+  .nosim { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; color: var(--text2); font-size: 12px; line-height: 1.8; }
 </style>
 </head>
 <body>
 <header>
-  <div>
-    <h1>⚗️ SimEngine</h1>
-    <div class="subtitle">Physics Falsification Dashboard</div>
-  </div>
-  <span class="badge">L1 Analytical</span>
-  <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
-    <button class="load-btn" onclick="document.getElementById('file-input').click()">Load sim_results.json</button>
-    <input type="file" id="file-input" accept=".json" onchange="loadFile(this)">
+  <div><h1>💎 SimEngine — Diamond Dashboard</h1><div class="subtitle">Physics Falsification · Diamonds Only · Live from Supabase</div></div>
+  <span class="badge">LIVE</span>
+  <div style="margin-left:auto;display:flex;gap:10px;align-items:center;">
+    <div class="dot" id="dot"></div><span id="cstatus">Not connected</span>
+    <button class="btn sec" onclick="refresh()">↻ Refresh</button>
   </div>
 </header>
 
-<div class="top-bar" id="top-bar">
-  <div class="stat"><span class="val" id="s-total">—</span><span class="lbl">Total</span></div>
-  <div class="stat"><span class="val pass-c" id="s-pass">—</span><span class="lbl">Pass</span></div>
-  <div class="stat"><span class="val fail-c" id="s-fail">—</span><span class="lbl">Fail</span></div>
-  <div class="stat"><span class="val marg-c" id="s-marg">—</span><span class="lbl">Marginal</span></div>
-  <div class="stat"><span class="val pass-c" id="s-proto">—</span><span class="lbl">→ Prototype</span></div>
-  <div class="stat"><span class="val fail-c" id="s-kill">—</span><span class="lbl">Kill</span></div>
-  <div class="stat"><span class="val info-c" id="s-avg">—</span><span class="lbl">Avg Score</span></div>
+<div class="connect-bar">
+  <input id="iurl" placeholder="Supabase URL — https://xxxxx.supabase.co" />
+  <input id="ikey" placeholder="Anon key (read-only)" style="width:360px" />
+  <button class="btn" onclick="connect()">Connect</button>
+</div>
+
+<div class="top-bar">
+  <div class="stat"><span class="val diam-c" id="s0">—</span><span class="lbl">💎 Diamonds</span></div>
+  <div class="stat"><span class="val pass-c"  id="s1">—</span><span class="lbl">Sim Pass</span></div>
+  <div class="stat"><span class="val marg-c"  id="s2">—</span><span class="lbl">Marginal</span></div>
+  <div class="stat"><span class="val fail-c"  id="s3">—</span><span class="lbl">Sim Fail</span></div>
+  <div class="stat"><span class="val marg-c"  id="s4">—</span><span class="lbl">Near Miss</span></div>
+  <div class="stat"><span class="val info-c"  id="s5">—</span><span class="lbl">Avg Sim Score</span></div>
 </div>
 
 <div class="layout">
-  <div class="sidebar" id="sidebar">
-    <div style="padding:10px 16px; color:var(--text2); font-size:11px;">Load sim_results.json to begin</div>
-  </div>
+  <div class="sidebar" id="sb"><div class="sb-head">Diamond Ideas</div><div style="padding:16px;color:var(--text2);font-size:11px">Connect to load diamonds</div></div>
   <div class="main" id="main">
-    <div class="empty-state">
-      <div style="font-size:48px;">⚗️</div>
-      <h3>SimEngine Dashboard</h3>
-      <p>Load a sim_results.json file to visualize physics falsification results.</p>
-      <p style="font-size:11px;">Run: <code style="color:#79c0ff">python sim_engine/main.py --demo</code> to generate results.</p>
-    </div>
+    <div class="empty"><div style="font-size:48px">💎</div><h3>Diamond Physics Dashboard</h3><p>Enter Supabase URL + anon key above, then Connect.</p><p style="font-size:11px;margin-top:8px">Shows only Diamond-status ideas with simulation results.</p></div>
   </div>
 </div>
 
 <script>
-let data = null;
-let selectedIdx = 0;
+let URL_='', KEY_='', data=[], sel=0;
 
-function loadFile(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      data = JSON.parse(e.target.result);
-      renderAll();
-    } catch(err) {
-      alert('Invalid JSON: ' + err.message);
+(function(){
+  const u=sessionStorage.getItem('su'), k=sessionStorage.getItem('sk');
+  if(u) document.getElementById('iurl').value=u;
+  if(k) document.getElementById('ikey').value=k;
+  if(u&&k){URL_=u;KEY_=k;load();}
+})();
+
+function connect(){
+  URL_=document.getElementById('iurl').value.trim().replace(/\/$/,'');
+  KEY_=document.getElementById('ikey').value.trim();
+  if(!URL_||!KEY_){alert('Fill both fields');return;}
+  sessionStorage.setItem('su',URL_); sessionStorage.setItem('sk',KEY_);
+  load();
+}
+function refresh(){if(!URL_){alert('Connect first');return;} load();}
+
+async function q(table,params){
+  const r=await fetch(`${URL_}/rest/v1/${table}?${params}`,{headers:{'apikey':KEY_,'Authorization':'Bearer '+KEY_}});
+  if(!r.ok) throw new Error(r.status+' '+r.statusText);
+  return r.json();
+}
+
+async function load(){
+  setS('','Loading...');
+  try{
+    const ideas=await q('ideas','select=id,title,domain,diamond_score,sim_score,near_miss,revision_targets,problem_statement,physical_limit,created_at,iteration_count&status=eq.diamond&order=diamond_score.desc');
+    let sims=[];
+    if(ideas.length){
+      const ids=ideas.map(i=>i.id).join(',');
+      sims=await q('sim_results',`select=*&idea_id=in.(${ids})&order=created_at.desc`);
     }
-  };
-  reader.readAsText(file);
+    const sm={};
+    sims.forEach(s=>{if(!sm[s.idea_id])sm[s.idea_id]=s;});
+    data=ideas.map(idea=>({idea,sim:sm[idea.id]||null}));
+    stats(); sidebar();
+    if(data.length) pick(0); else empty();
+    setS('ok','Connected · '+data.length+' diamonds · last refresh '+new Date().toLocaleTimeString());
+  }catch(e){setS('err','Error: '+e.message);console.error(e);}
 }
 
-function renderAll() {
-  if (!data || !data.reports) return;
-  const s = data.summary || {};
-  document.getElementById('s-total').textContent = s.total || data.reports.length;
-  document.getElementById('s-pass').textContent  = s.pass || 0;
-  document.getElementById('s-fail').textContent  = s.fail || 0;
-  document.getElementById('s-marg').textContent  = s.marginal || 0;
-  document.getElementById('s-proto').textContent = s.proceed_to_prototype || 0;
-  document.getElementById('s-kill').textContent  = s.kill_physics || 0;
-  document.getElementById('s-avg').textContent   = (s.avg_score || 0).toFixed(1);
-  renderSidebar();
-  selectIdea(0);
+function setS(st,msg){
+  document.getElementById('dot').className='dot '+(st==='ok'?'ok':st==='err'?'err':'');
+  document.getElementById('cstatus').textContent=msg;
 }
 
-function statusClass(s) {
-  return s === 'pass' ? 'pill-pass' : s === 'fail' ? 'pill-fail' : s === 'marginal' ? 'pill-marginal' : 'pill-insuf';
-}
-function statusText(s) {
-  return s === 'insufficient_data' ? 'NO DATA' : s.toUpperCase();
-}
-function cardClass(s) {
-  return s === 'pass' ? 'card-pass' : s === 'fail' ? 'card-fail' : s === 'marginal' ? 'card-marginal' : '';
-}
-
-function renderSidebar() {
-  const sb = document.getElementById('sidebar');
-  sb.innerHTML = data.reports.map((r, i) => `
-    <div class="idea-item ${i === selectedIdx ? 'active' : ''}" onclick="selectIdea(${i})">
-      <div class="title">${r.idea_title}</div>
-      <div class="meta">
-        <span class="status-pill ${statusClass(r.overall_status)}">${statusText(r.overall_status)}</span>
-        <span class="score-mini">${r.overall_score.toFixed(1)}/10</span>
-        <span class="score-mini" style="color:var(--text2)">${r.recommendation.replace(/_/g,' ')}</span>
-      </div>
-    </div>
-  `).join('');
+function stats(){
+  const ws=data.filter(d=>d.sim);
+  const pass=ws.filter(d=>d.sim.sim_status==='pass').length;
+  const marg=ws.filter(d=>d.sim.sim_status==='marginal').length;
+  const fail=ws.filter(d=>['fail','critical'].includes(d.sim.sim_status)).length;
+  const nm=data.filter(d=>d.idea.near_miss).length;
+  const sc=ws.map(d=>d.sim.sim_score).filter(Boolean);
+  const avg=sc.length?(sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(1):'—';
+  ['s0','s1','s2','s3','s4','s5'].forEach((id,i)=>{
+    document.getElementById(id).textContent=[data.length,pass,marg,fail,nm,avg][i];
+  });
 }
 
-function selectIdea(idx) {
-  selectedIdx = idx;
-  renderSidebar();
-  renderReport(data.reports[idx]);
-}
-
-function recClass(r) {
-  if (r === 'proceed_to_prototype') return 'rec-proceed';
-  if (r === 'kill_physics') return 'rec-kill';
-  if (r === 'revise_and_resim') return 'rec-revise';
-  return 'rec-data';
-}
-function recLabel(r) {
-  return r.replace(/_/g,' ').toUpperCase();
-}
-
-function metricColor(k, v) {
-  if (k.includes('margin') && v < 10) return 'red';
-  if (k.includes('margin') && v < 25) return 'yel';
-  if (k.includes('margin') && v >= 25) return 'grn';
-  if (k.includes('exceed') || (k.includes('ratio') && v > 1.2)) return 'red';
-  return '';
-}
-
-function renderDomainCard(dr) {
-  const mkeys = Object.keys(dr.metrics).slice(0, 8);
-  const metricsHtml = mkeys.map(k => {
-    const v = dr.metrics[k];
-    const vStr = typeof v === 'number' ? (Math.abs(v) < 0.001 ? v.toExponential(2) : v.toFixed(2)) : v;
-    const col = metricColor(k, v);
-    return `<div class="metric-row"><span class="k">${k}</span><span class="v ${col}">${vStr}</span></div>`;
-  }).join('');
-
-  const warnsHtml = dr.warnings.map(w => {
-    const isFatal = w.includes('EXCEED') || w.includes('VIOLAT') || w.includes('IMPOSSIBLE');
-    return `<div class="warn ${isFatal ? '' : 'marg'}">${w}</div>`;
-  }).join('');
-
-  let falsifHtml = '';
-  if (dr.falsification) {
-    const f = dr.falsification;
-    const pct = Math.max(0, Math.min(100, f.safety_margin_pct));
-    const fillColor = pct < 0 ? 'var(--fail)' : pct < 20 ? 'var(--marginal)' : 'var(--pass)';
-    const barWidth  = pct < 0 ? 100 : pct;
-    falsifHtml = `
-      <div class="falsif-box">
-        <h4>🔬 Falsification Boundary</h4>
-        <div style="font-size:11px; color:var(--text2)">Breaking parameter: <b style="color:var(--text)">${f.breaking_param}</b></div>
-        <div style="font-size:11px; margin:4px 0">
-          Nominal: <b>${f.nominal_value} ${f.units}</b> →
-          Breaks at: <b style="color:${pct < 10 ? 'var(--fail)' : 'var(--marginal)'}">${f.breaking_value} ${f.units}</b>
-        </div>
-        <div class="falsif-bar"><div class="falsif-fill" style="width:${barWidth}%; background:${fillColor}"></div></div>
-        <div style="font-size:10px; color:var(--text2); margin-bottom:6px">Safety margin: ${f.safety_margin_pct.toFixed(1)}%</div>
-        <div class="falsif-eq">${f.equation_used}</div>
-        <div class="fix-vec">💡 ${f.fix_vector}</div>
+function sidebar(){
+  const sb=document.getElementById('sb');
+  if(!data.length){sb.innerHTML='<div class="sb-head">Diamond Ideas</div><div style="padding:16px;color:var(--text2);font-size:11px">No diamonds yet — check back after a few RD Engine runs.</div>';return;}
+  sb.innerHTML='<div class="sb-head">Diamond Ideas ('+data.length+')</div>'+
+    data.map((d,i)=>{
+      const ss=d.sim?d.sim.sim_status:'none';
+      const pc=ss==='pass'?'p-pass':ss==='fail'?'p-fail':ss==='critical'?'p-crit':ss==='marginal'?'p-marg':'p-none';
+      const pt=ss==='none'?'NO SIM':ss.toUpperCase();
+      const sc=d.sim?d.sim.sim_score.toFixed(1):'—';
+      const nm=d.idea.near_miss?'<span style="color:var(--marginal);font-size:10px">⚠ near-miss</span>':'';
+      return`<div class="idea-item ${i===sel?'active':''}" onclick="pick(${i})">
+        <div class="title">💎 ${d.idea.title}</div>
+        <div class="meta"><span class="pill ${pc}">${pt}</span><span class="sm">${sc}/10</span><span class="sm diam-c">${d.idea.diamond_score.toFixed(1)}◆</span>${nm}</div>
       </div>`;
-  }
-
-  return `
-    <div class="domain-card ${cardClass(dr.status)}">
-      <h3 style="color:${dr.status==='pass'?'var(--pass)':dr.status==='fail'?'var(--fail)':'var(--marginal)'}">
-        ${dr.domain.replace('_',' ')} · ${dr.score.toFixed(1)}/10
-      </h3>
-      <div style="font-size:10px;color:var(--text2);margin-bottom:8px">${dr.fidelity} · ${dr.solver_notes.slice(0,50)}…</div>
-      ${metricsHtml}
-      <div class="warnings-list">${warnsHtml}</div>
-      ${falsifHtml}
-    </div>`;
+    }).join('');
 }
 
-function renderSweepChart(canvasId, sweep, domain) {
-  if (!sweep || sweep.length === 0) return;
-  const canvas = document.getElementById(canvasId);
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  ctx.clearRect(0,0,W,H);
+function empty(){document.getElementById('main').innerHTML='<div class="empty"><div style="font-size:48px">💎</div><h3>No Diamonds Yet</h3><p>RD Engine needs a few days to find diamond-grade ideas.</p></div>';}
 
-  const xVals = sweep.map(p => p.param_value);
-  const yVals = sweep.map(p => p.metric_value);
-  const xMin = Math.min(...xVals), xMax = Math.max(...xVals);
-  const yMin = Math.min(...yVals), yMax = Math.max(...yVals);
-  const pad = { t:20, r:20, b:40, l:60 };
-  const W2 = W - pad.l - pad.r, H2 = H - pad.t - pad.b;
+function pick(i){sel=i;sidebar();detail(data[i]);}
 
-  function cx(v) { return pad.l + (v - xMin) / (xMax - xMin + 0.001) * W2; }
-  function cy(v) { return pad.t + (1 - (v - yMin) / (yMax - yMin + 0.001)) * H2; }
+function detail(d){
+  const {idea,sim}=d;
+  const main=document.getElementById('main');
 
-  // Background
-  ctx.fillStyle = '#0d1117';
-  ctx.fillRect(0,0,W,H);
+  const km=sim?`<div class="km-grid">
+    ${kmc('Sim Score',sim.sim_score,'/10',sim.sim_score>=7?'pass-c':sim.sim_score>=4?'marg-c':'fail-c')}
+    ${kmc('Diamond Score',idea.diamond_score,'◆','diam-c')}
+    ${sim.t_op_c!=null?kmc('T Junction',sim.t_op_c,'°C',sim.t_op_c>110?'fail-c':sim.t_op_c>85?'marg-c':'pass-c'):''}
+    ${sim.margin_to_runaway_pct!=null?kmc('Runaway Margin',sim.margin_to_runaway_pct,'%',sim.margin_to_runaway_pct<10?'fail-c':sim.margin_to_runaway_pct<25?'marg-c':'pass-c'):''}
+    ${sim.yield_pct!=null?kmc('MC Yield',sim.yield_pct,'%',sim.yield_pct<50?'fail-c':sim.yield_pct<80?'marg-c':'pass-c'):''}
+    ${sim.min_mttf_years!=null?kmc('Min MTTF',sim.min_mttf_years,'yr',sim.min_mttf_years<5?'fail-c':sim.min_mttf_years<10?'marg-c':'pass-c'):''}
+  </div>`:'';
 
-  // Grid
-  ctx.strokeStyle = '#21262d'; ctx.lineWidth = 1;
-  for (let i=0; i<=4; i++) {
-    const y = pad.t + i * H2/4;
-    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W-pad.r, y); ctx.stroke();
-    const val = yMax - i * (yMax - yMin) / 4;
-    ctx.fillStyle = '#8b949e'; ctx.font = '9px monospace';
-    ctx.fillText(val.toFixed(1), 2, y+3);
-  }
+  const doms=(sim&&Array.isArray(sim.domain_results))?sim.domain_results:[];
+  const domsHtml=doms.length?`<div class="dom-grid">${doms.map(dr=>domCard(dr)).join('')}</div>`:'';
 
-  // Pass/fail coloring
-  sweep.forEach((p, i) => {
-    if (i === 0) return;
-    const x1=cx(sweep[i-1].param_value), x2=cx(p.param_value);
-    const y1=cy(sweep[i-1].metric_value), y2=cy(p.metric_value);
-    const col = p.status === 'fail' ? 'rgba(248,81,73,0.8)' : p.status === 'marginal' ? 'rgba(210,153,34,0.8)' : 'rgba(63,185,80,0.8)';
-    ctx.strokeStyle = col; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
-    ctx.fillStyle = col;
-    ctx.beginPath(); ctx.arc(x2, y2, 3, 0, Math.PI*2); ctx.fill();
-  });
+  const rt=[...((idea.revision_targets&&Array.isArray(idea.revision_targets))?idea.revision_targets:[]),
+            ...((sim&&sim.revision_targets&&Array.isArray(sim.revision_targets))?sim.revision_targets:[])];
+  const revHtml=rt.length?`<div class="rev-list" style="margin-top:14px"><h4>🔧 Revision Targets</h4>${rt.map(r=>`<div class="rev-item">${typeof r==='object'?JSON.stringify(r):r}</div>`).join('')}</div>`:'';
 
-  // Labels
-  ctx.fillStyle = '#8b949e'; ctx.font = '9px monospace';
-  ctx.fillText(sweep[0].param_name, pad.l, H-5);
-  ctx.fillText(sweep[0].metric_name, 2, pad.t-5);
-}
+  const cx=(sim&&Array.isArray(sim.cross_domain_couplings))?sim.cross_domain_couplings:[];
+  const coupHtml=cx.length?`<div class="coup-list" style="margin-top:14px"><h4>🔗 Cross-Domain Couplings</h4>${cx.map(c=>`<div class="coup-item">${typeof c==='object'?JSON.stringify(c):c}</div>`).join('')}</div>`:'';
 
-function renderReport(report) {
-  const main = document.getElementById('main');
-  const domainsHtml = report.domain_results.map(dr => renderDomainCard(dr)).join('');
-  const sweepDomains = report.domain_results.filter(dr => dr.sweep_points.length > 0);
+  const noSim=!sim?'<div class="nosim">⏳ Simulation not yet run for this diamond.<br><span style="font-size:11px">SIM Engine will process it automatically on next run.</span></div>':'';
 
-  const couplingsHtml = report.cross_domain_couplings.length ? `
-    <div class="coupling-list">
-      <h4>🔗 Cross-Domain Couplings</h4>
-      ${report.cross_domain_couplings.map(c => `<div class="coupling-item">${c}</div>`).join('')}
-    </div>` : '';
+  const statusBadge=sim?`<span class="rec ${sim.sim_status==='pass'?'rec-p':sim.sim_status==='marginal'?'rec-r':'rec-k'}">${sim.sim_status.toUpperCase()}</span>`:'';
+  const nmBadge=idea.near_miss?'<span class="nm-badge">⚠ NEAR MISS</span>':'';
+  const itBadge=idea.iteration_count>0?`<span style="font-size:11px;color:var(--text2)"> · iteration ${idea.iteration_count}</span>`:'';
 
-  const revisionsHtml = report.revision_targets.length ? `
-    <div class="revision-list">
-      <h4>🔧 Revision Targets</h4>
-      ${report.revision_targets.map(r => `<div class="revision-item">${r}</div>`).join('')}
-    </div>` : '';
-
-  const sweepsHtml = sweepDomains.length ? `
-    <div style="margin-top:20px">
-      <h4 style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">📈 Parameter Sweeps</h4>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">
-        ${sweepDomains.map((dr, i) => `
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px">
-            <div style="font-size:11px;color:var(--text2);margin-bottom:8px">${dr.domain} — ${dr.sweep_points[0]?.param_name || ''}</div>
-            <canvas id="sweep-${i}" width="300" height="150" style="width:100%;border-radius:4px"></canvas>
-          </div>`).join('')}
-      </div>
-    </div>` : '';
-
-  main.innerHTML = `
-    <div class="report-header">
-      <h2>${report.idea_title}</h2>
-      <div style="color:var(--text2);font-size:11px;margin-bottom:6px">${report.idea_id} · ${report.timestamp.slice(0,19)}</div>
-      <span class="rec ${recClass(report.recommendation)}">${recLabel(report.recommendation)}</span>
+  main.innerHTML=`
+    <div class="rh">
+      <h2>💎 ${idea.title}</h2>
+      <div style="color:var(--text2);font-size:11px;margin-bottom:8px">${idea.id.slice(0,8)} · ${(idea.created_at||'').slice(0,10)} · ${idea.domain}${itBadge}</div>
+      ${statusBadge}${nmBadge}
+      ${idea.problem_statement?`<p style="margin-top:12px;font-size:12px;color:var(--text2);line-height:1.6">${idea.problem_statement}</p>`:''}
+      ${idea.physical_limit?`<p style="margin-top:6px;font-size:11px;color:var(--nodata)">⚡ ${idea.physical_limit}</p>`:''}
     </div>
-    <div class="score-ring">
-      <div class="ring-wrap">
-        <canvas id="ring-main" width="90" height="90"></canvas>
-        <span class="ring-val">${report.overall_score.toFixed(1)}</span>
-        <span class="ring-lbl">Overall</span>
-      </div>
-      ${report.domain_results.map(dr => `
-        <div class="ring-wrap">
-          <canvas id="ring-${dr.domain}" width="90" height="90"></canvas>
-          <span class="ring-val" style="font-size:16px">${dr.score.toFixed(1)}</span>
-          <span class="ring-lbl">${dr.domain.replace('_',' ')}</span>
-        </div>`).join('')}
-    </div>
-    <div class="domain-grid">${domainsHtml}</div>
-    ${couplingsHtml}
-    ${revisionsHtml}
-    ${sweepsHtml}
-  `;
-
-  // Draw score rings
-  drawRing('ring-main', report.overall_score, report.overall_status);
-  report.domain_results.forEach(dr => drawRing('ring-' + dr.domain, dr.score, dr.status));
-
-  // Draw sweep charts
-  sweepDomains.forEach((dr, i) => {
-    setTimeout(() => renderSweepChart('sweep-' + i, dr.sweep_points, dr.domain), 50);
-  });
+    ${km}${noSim}${domsHtml}${revHtml}${coupHtml}`;
 }
 
-function drawRing(id, score, status) {
-  const canvas = document.getElementById(id);
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const cx = 45, cy = 45, r = 35, lw = 7;
-  const col = status === 'pass' ? '#3fb950' : status === 'fail' ? '#f85149' : status === 'marginal' ? '#d29922' : '#58a6ff';
-  const angle = (score / 10) * 2 * Math.PI;
-  ctx.clearRect(0,0,90,90);
-  // Background ring
-  ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI/2, Math.PI*1.5);
-  ctx.strokeStyle = '#21262d'; ctx.lineWidth = lw; ctx.stroke();
-  // Score arc
-  ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI/2, -Math.PI/2 + angle);
-  ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.stroke();
+function kmc(label,val,unit,cls){
+  const display=val!=null?(typeof val==='number'?val.toFixed(1):val)+unit:'—';
+  return`<div class="km"><div class="l">${label}</div><div class="v ${cls}">${display}</div></div>`;
+}
+
+function domCard(dr){
+  if(!dr) return '';
+  const st=dr.status||'unknown', sc=typeof dr.score==='number'?dr.score:0;
+  const dc=st==='pass'?'dp':st==='fail'?'df':st==='marginal'?'dm':'';
+  const col=st==='pass'?'var(--pass)':st==='fail'?'var(--fail)':'var(--marginal)';
+  const metrics=dr.metrics||dr.key_metrics||{};
+  const mh=Object.entries(metrics).slice(0,8).map(([k,v])=>{
+    const vs=typeof v==='number'?(Math.abs(v)<0.001?v.toExponential(2):v.toFixed(2)):String(v);
+    const vc=k.includes('margin')&&Number(v)<10?'vr':k.includes('margin')&&Number(v)<25?'vy':'';
+    return`<div class="mr"><span class="k">${k}</span><span class="v ${vc}">${vs}</span></div>`;
+  }).join('');
+  const warns=(dr.warnings||[]).map(w=>`<div style="font-size:10px;color:${w.includes('EXCEED')||w.includes('VIOLAT')?'#ffa0a0':'#ffe08a'};margin-top:4px">⚠ ${w}</div>`).join('');
+  return`<div class="dc ${dc}"><h3 style="color:${col}">${(dr.domain||'').replace(/_/g,' ')} · ${sc.toFixed(1)}/10</h3>${dr.solver_notes?`<div style="font-size:10px;color:var(--text2);margin-bottom:8px">${String(dr.solver_notes).slice(0,60)}…</div>`:''} ${mh}${warns}</div>`;
 }
 </script>
 </body>
