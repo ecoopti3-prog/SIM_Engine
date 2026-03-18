@@ -1,0 +1,750 @@
+{
+  "run_id": "112c1496-71cc-49a6-b90c-42c0130936f1",
+  "timestamp": "2026-03-10T15:25:13.976534+00:00",
+  "ideas_submitted": 5,
+  "ideas_completed": 5,
+  "reports": [
+    {
+      "id": "c18ceb6e-85c0-4ae8-9f6d-1a0331fe2cb7",
+      "idea_id": "demo-thermal-ok",
+      "idea_title": "Vapor Chamber TIM for HBM3 Stack",
+      "timestamp": "2026-03-10T15:25:13.972006+00:00",
+      "domain_results": [
+        {
+          "id": "5ac7e7e6-781e-4e47-96ee-f3af24f6ee58",
+          "idea_id": "demo-thermal-ok",
+          "domain": "thermal",
+          "fidelity": "L1_analytical",
+          "status": "pass",
+          "score": 7.16,
+          "metrics": {
+            "T_junction_c": 98.0,
+            "R_theta_c_per_w": 0.42,
+            "power_w": 150.0,
+            "margin_to_jedec_c": 27.0,
+            "margin_to_jedec_pct": 21.6,
+            "heat_flux_w_cm2": 65.0,
+            "heat_flux_limit": 100.0,
+            "flux_margin_pct": 35.0,
+            "T_steady_state_c": 36.48,
+            "thermal_time_constant_s": 21.0
+          },
+          "sweep_points": [
+            {
+              "param_name": "power_w",
+              "param_value": 75.0,
+              "metric_name": "T_junction_c",
+              "metric_value": 66.5,
+              "status": "pass"
+            },
+            {
+              "param_name": "power_w",
+              "param_value": 112.5,
+              "metric_name": "T_junction_c",
+              "metric_value": 82.25,
+              "status": "pass"
+            },
+            {
+              "param_name": "power_w",
+              "param_value": 150.0,
+              "metric_name": "T_junction_c",
+              "metric_value": 98.0,
+              "status": "pass"
+            },
+            {
+              "param_name": "power_w",
+              "param_value": 187.5,
+              "metric_name": "T_junction_c",
+              "metric_value": 113.75,
+              "status": "pass"
+            },
+            {
+              "param_name": "power_w",
+              "param_value": 225.0,
+              "metric_name": "T_junction_c",
+              "metric_value": 129.5,
+              "status": "fail"
+            },
+            {
+              "param_name": "power_w",
+              "param_value": 300.0,
+              "metric_name": "T_junction_c",
+              "metric_value": 161.0,
+              "status": "fail"
+            },
+            {
+              "param_name": "power_w",
+              "param_value": 375.0,
+              "metric_name": "T_junction_c",
+              "metric_value": 192.5,
+              "status": "fail"
+            },
+            {
+              "param_name": "time_s",
+              "param_value": 0.026,
+              "metric_name": "T_junction_transient_c",
+              "metric_value": 35.08,
+              "status": "pass"
+            },
+            {
+              "param_name": "time_s",
+              "param_value": 0.132,
+              "metric_name": "T_junction_transient_c",
+              "metric_value": 35.39,
+              "status": "pass"
+            },
+            {
+              "param_name": "time_s",
+              "param_value": 0.237,
+              "metric_name": "T_junction_transient_c",
+              "metric_value": 35.71,
+              "status": "pass"
+            },
+            {
+              "param_name": "time_s",
+              "param_value": 0.342,
+              "metric_name": "T_junction_transient_c",
+              "metric_value": 36.02,
+              "status": "pass"
+            },
+            {
+              "param_name": "time_s",
+              "param_value": 0.447,
+              "metric_name": "T_junction_transient_c",
+              "metric_value": 36.33,
+              "status": "pass"
+            }
+          ],
+          "falsification": {
+            "domain": "thermal",
+            "breaking_param": "power_w",
+            "nominal_value": 150.0,
+            "breaking_value": 214.3,
+            "safety_margin_pct": 30.0,
+            "units": "W",
+            "equation_used": "T_j = 35.0 + P × 0.4200  (limit=125.0°C)",
+            "fix_vector": "30.0% power headroom before thermal death."
+          },
+          "trace": {},
+          "warnings": [],
+          "solver_notes": "RC steady-state + transient (scipy.solve_ivp)"
+        },
+        {
+          "id": "f20f4d90-b660-4d58-bdac-24f6ebbd14d2",
+          "idea_id": "demo-thermal-ok",
+          "domain": "electrical",
+          "fidelity": "L1_analytical",
+          "status": "pass",
+          "score": 9.0,
+          "metrics": {},
+          "sweep_points": [],
+          "falsification": null,
+          "trace": {},
+          "warnings": [],
+          "solver_notes": "CMOS power model: P=αCV²f, Landauer check, IR drop estimate"
+        },
+        {
+          "id": "87ff606d-574b-45ea-9b14-12cc4e4f4e8f",
+          "idea_id": "demo-thermal-ok",
+          "domain": "pdn",
+          "fidelity": "L1_analytical",
+          "status": "marginal",
+          "score": 5.0,
+          "metrics": {
+            "ir_drop_mv": 38.0,
+            "ir_drop_pct_vdd": 4.47,
+            "ir_drop_limit_pct": 5.0,
+            "Z_target_mohm": 0.236,
+            "current_a": 180.0,
+            "Q_decap_nc": 17000.0,
+            "Q_needed_nc": 15.0,
+            "decap_ratio": 1133.33
+          },
+          "sweep_points": [
+            {
+              "param_name": "current_a",
+              "param_value": 90.0,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 1.25,
+              "status": "pass"
+            },
+            {
+              "param_name": "current_a",
+              "param_value": 135.0,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 1.88,
+              "status": "pass"
+            },
+            {
+              "param_name": "current_a",
+              "param_value": 180.0,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 2.5,
+              "status": "pass"
+            },
+            {
+              "param_name": "current_a",
+              "param_value": 225.0,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 3.13,
+              "status": "pass"
+            },
+            {
+              "param_name": "current_a",
+              "param_value": 270.0,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 3.75,
+              "status": "pass"
+            },
+            {
+              "param_name": "current_a",
+              "param_value": 360.0,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 5.0,
+              "status": "fail"
+            }
+          ],
+          "falsification": {
+            "domain": "pdn",
+            "breaking_param": "current_a",
+            "nominal_value": 180.0,
+            "breaking_value": 360.0,
+            "safety_margin_pct": 50.0,
+            "units": "A",
+            "equation_used": "IR_drop = I × R_pdn = I × 0.12mΩ ≤ 42.5mV",
+            "fix_vector": "50% current headroom."
+          },
+          "trace": {},
+          "warnings": [
+            "IR drop 4.5% of VDD — approaching limit (5%)"
+          ],
+          "solver_notes": "DC IR-drop, RLC impedance (numpy), EM check, decap check"
+        }
+      ],
+      "overall_status": "marginal",
+      "overall_score": 7.05,
+      "cross_domain_couplings": [],
+      "recommendation": "revise_and_resim",
+      "revision_targets": [
+        "[PDN] 50% current headroom.",
+        "[PDN] IR drop 4.5% of VDD — approaching limit (5%)"
+      ],
+      "fidelity_used": {
+        "thermal": "L1_analytical",
+        "electrical": "L1_analytical",
+        "pdn": "L1_analytical"
+      },
+      "total_sim_time_ms": 3
+    },
+    {
+      "id": "328e3290-b7f6-47fe-9abb-053c14b007ba",
+      "idea_id": "demo-thermal-fail",
+      "idea_title": "Ambient-Cooled 1000W AI ASIC (No Exotic Cooling)",
+      "timestamp": "2026-03-10T15:25:13.975437+00:00",
+      "domain_results": [
+        {
+          "id": "36a626c0-0cc8-4a56-a1ae-6d125538dc63",
+          "idea_id": "demo-thermal-fail",
+          "domain": "thermal",
+          "fidelity": "L1_analytical",
+          "status": "fail",
+          "score": 1.5,
+          "metrics": {
+            "T_junction_c": 175.0,
+            "R_theta_c_per_w": 0.15,
+            "power_w": 1000.0,
+            "margin_to_jedec_c": -50.0,
+            "margin_to_jedec_pct": -40.0,
+            "heat_flux_w_cm2": 220.0,
+            "heat_flux_limit": 100.0,
+            "flux_margin_pct": -120.0,
+            "T_steady_state_c": 34.67,
+            "thermal_time_constant_s": 7.5
+          },
+          "sweep_points": [
+            {
+              "param_name": "power_w",
+              "param_value": 500.0,
+              "metric_name": "T_junction_c",
+              "metric_value": 100.0,
+              "status": "pass"
+            },
+            {
+              "param_name": "power_w",
+              "param_value": 750.0,
+              "metric_name": "T_junction_c",
+              "metric_value": 137.5,
+              "status": "fail"
+            },
+            {
+              "param_name": "power_w",
+              "param_value": 1000.0,
+              "metric_name": "T_junction_c",
+              "metric_value": 175.0,
+              "status": "fail"
+            },
+            {
+              "param_name": "power_w",
+              "param_value": 1250.0,
+              "metric_name": "T_junction_c",
+              "metric_value": 212.5,
+              "status": "fail"
+            },
+            {
+              "param_name": "power_w",
+              "param_value": 1500.0,
+              "metric_name": "T_junction_c",
+              "metric_value": 250.0,
+              "status": "fail"
+            },
+            {
+              "param_name": "power_w",
+              "param_value": 2000.0,
+              "metric_name": "T_junction_c",
+              "metric_value": 325.0,
+              "status": "fail"
+            },
+            {
+              "param_name": "power_w",
+              "param_value": 2500.0,
+              "metric_name": "T_junction_c",
+              "metric_value": 400.0,
+              "status": "fail"
+            },
+            {
+              "param_name": "time_s",
+              "param_value": 0.026,
+              "metric_name": "T_junction_transient_c",
+              "metric_value": 25.53,
+              "status": "pass"
+            },
+            {
+              "param_name": "time_s",
+              "param_value": 0.132,
+              "metric_name": "T_junction_transient_c",
+              "metric_value": 27.61,
+              "status": "pass"
+            },
+            {
+              "param_name": "time_s",
+              "param_value": 0.237,
+              "metric_name": "T_junction_transient_c",
+              "metric_value": 29.66,
+              "status": "pass"
+            },
+            {
+              "param_name": "time_s",
+              "param_value": 0.342,
+              "metric_name": "T_junction_transient_c",
+              "metric_value": 31.69,
+              "status": "pass"
+            },
+            {
+              "param_name": "time_s",
+              "param_value": 0.447,
+              "metric_name": "T_junction_transient_c",
+              "metric_value": 33.69,
+              "status": "pass"
+            }
+          ],
+          "falsification": {
+            "domain": "thermal",
+            "breaking_param": "power_w",
+            "nominal_value": 1000.0,
+            "breaking_value": 666.7,
+            "safety_margin_pct": -50.0,
+            "units": "W",
+            "equation_used": "T_j = 25.0 + P × 0.1500  (limit=125.0°C)",
+            "fix_vector": "Need R_theta ≤ 0.100 °C/W. Options: two-phase vapor chamber, microfluidic cooling, diamond TIM."
+          },
+          "trace": {},
+          "warnings": [
+            "T_junction 175.0°C EXCEEDS JEDEC 125.0°C by 50.0°C",
+            "Heat flux 220.0 W/cm² EXCEEDS copper limit 100.0 W/cm²"
+          ],
+          "solver_notes": "RC steady-state + transient (scipy.solve_ivp)"
+        },
+        {
+          "id": "1c148fb7-6b6c-40b2-9b7c-17d56a836767",
+          "idea_id": "demo-thermal-fail",
+          "domain": "electrical",
+          "fidelity": "L1_analytical",
+          "status": "marginal",
+          "score": 5.0,
+          "metrics": {
+            "IR_drop_estimated_mv": 13330.0,
+            "IR_drop_pct_of_vdd": 1777.33
+          },
+          "sweep_points": [],
+          "falsification": null,
+          "trace": {},
+          "warnings": [
+            "Estimated IR drop 13330.0 mV = 1777.3% of VDD — exceeds 5% safe limit → PDN simulation required (L2)"
+          ],
+          "solver_notes": "CMOS power model: P=αCV²f, Landauer check, IR drop estimate"
+        },
+        {
+          "id": "d0dd20e5-8a21-43e2-878d-f9a173b07632",
+          "idea_id": "demo-thermal-fail",
+          "domain": "pdn",
+          "fidelity": "L1_analytical",
+          "status": "fail",
+          "score": 1.5,
+          "metrics": {
+            "ir_drop_mv": 52.0,
+            "ir_drop_pct_vdd": 6.93,
+            "ir_drop_limit_pct": 5.0,
+            "Z_target_mohm": 0.028,
+            "current_a": 1333.0,
+            "n_chiplets": 8.0
+          },
+          "sweep_points": [
+            {
+              "param_name": "current_a",
+              "param_value": 666.5,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 1.25,
+              "status": "pass"
+            },
+            {
+              "param_name": "current_a",
+              "param_value": 999.8,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 1.88,
+              "status": "pass"
+            },
+            {
+              "param_name": "current_a",
+              "param_value": 1333.0,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 2.5,
+              "status": "pass"
+            },
+            {
+              "param_name": "current_a",
+              "param_value": 1666.2,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 3.12,
+              "status": "pass"
+            },
+            {
+              "param_name": "current_a",
+              "param_value": 1999.5,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 3.75,
+              "status": "pass"
+            },
+            {
+              "param_name": "current_a",
+              "param_value": 2666.0,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 5.0,
+              "status": "fail"
+            }
+          ],
+          "falsification": {
+            "domain": "pdn",
+            "breaking_param": "current_a",
+            "nominal_value": 1333.0,
+            "breaking_value": 2666.0,
+            "safety_margin_pct": 50.0,
+            "units": "A",
+            "equation_used": "IR_drop = I × R_pdn = I × 0.01mΩ ≤ 37.5mV",
+            "fix_vector": "50% current headroom."
+          },
+          "trace": {},
+          "warnings": [
+            "IR drop 52.0 mV = 6.9% of VDD EXCEEDS 5.0% limit — performance degradation guaranteed",
+            "8 chiplets: PDN routing complexity scales nonlinearly — inter-chiplet ground bounce and shared bump resources need L2 simulation"
+          ],
+          "solver_notes": "DC IR-drop, RLC impedance (numpy), EM check, decap check"
+        }
+      ],
+      "overall_status": "fail",
+      "overall_score": 2.67,
+      "cross_domain_couplings": [
+        "PDN×THERMAL: IR drop 6.9% at T_j 175°C → leakage increases ~2× per 10°C → worsens IR drop (positive feedback loop)"
+      ],
+      "recommendation": "kill_physics",
+      "revision_targets": [
+        "[THERMAL] Need R_theta ≤ 0.100 °C/W. Options: two-phase vapor chamber, microfluidic cooling, diamond TIM.",
+        "[THERMAL] T_junction 175.0°C EXCEEDS JEDEC 125.0°C by 50.0°C",
+        "[THERMAL] Heat flux 220.0 W/cm² EXCEEDS copper limit 100.0 W/cm²",
+        "[ELECTRICAL] Estimated IR drop 13330.0 mV = 1777.3% of VDD — exceeds 5% safe limit → PDN simulation required (L2)",
+        "[PDN] 50% current headroom.",
+        "[PDN] IR drop 52.0 mV = 6.9% of VDD EXCEEDS 5.0% limit — performance degradation guaranteed",
+        "[PDN] 8 chiplets: PDN routing complexity scales nonlinearly — inter-chiplet ground bounce and shared bump resources need L2 simulation"
+      ],
+      "fidelity_used": {
+        "thermal": "L1_analytical",
+        "electrical": "L1_analytical",
+        "pdn": "L1_analytical"
+      },
+      "total_sim_time_ms": 3
+    },
+    {
+      "id": "e84d41c6-0a7e-489c-9bff-bab65d5e1cd2",
+      "idea_id": "demo-carnot-violate",
+      "idea_title": "Quantum Cooling with COP=50 at ΔT=80°C",
+      "timestamp": "2026-03-10T15:25:13.975935+00:00",
+      "domain_results": [
+        {
+          "id": "6c91e1e2-de0f-4e69-aa3d-577588eb682d",
+          "idea_id": "demo-carnot-violate",
+          "domain": "thermal",
+          "fidelity": "L1_analytical",
+          "status": "fail",
+          "score": 0.0,
+          "metrics": {
+            "COP_claimed": 50.0,
+            "COP_carnot": 3.727,
+            "COP_efficiency_pct": 1341.6
+          },
+          "sweep_points": [],
+          "falsification": null,
+          "trace": {},
+          "warnings": [
+            "COP_claimed=50.00 VIOLATES Carnot max=3.73 — PHYSICALLY IMPOSSIBLE"
+          ],
+          "solver_notes": "Carnot violation — idea is physically impossible"
+        },
+        {
+          "id": "d552d75a-cd59-4a52-a27a-0d935928ea3d",
+          "idea_id": "demo-carnot-violate",
+          "domain": "electrical",
+          "fidelity": "L1_analytical",
+          "status": "pass",
+          "score": 9.0,
+          "metrics": {},
+          "sweep_points": [],
+          "falsification": null,
+          "trace": {},
+          "warnings": [],
+          "solver_notes": "CMOS power model: P=αCV²f, Landauer check, IR drop estimate"
+        }
+      ],
+      "overall_status": "fail",
+      "overall_score": 4.5,
+      "cross_domain_couplings": [],
+      "recommendation": "kill_physics",
+      "revision_targets": [
+        "[THERMAL] COP_claimed=50.00 VIOLATES Carnot max=3.73 — PHYSICALLY IMPOSSIBLE"
+      ],
+      "fidelity_used": {
+        "thermal": "L1_analytical",
+        "electrical": "L1_analytical"
+      },
+      "total_sim_time_ms": 0
+    },
+    {
+      "id": "8a35c159-20f5-44a9-a91e-c84f2e2484ed",
+      "idea_id": "demo-roofline",
+      "idea_title": "400 TFLOPS Accelerator with 3.2 TB/s HBM4",
+      "timestamp": "2026-03-10T15:25:13.976245+00:00",
+      "domain_results": [
+        {
+          "id": "444395d1-1d9e-484e-b39f-92f48cfe5c81",
+          "idea_id": "demo-roofline",
+          "domain": "thermal",
+          "fidelity": "L1_analytical",
+          "status": "insufficient_data",
+          "score": 4.0,
+          "metrics": {},
+          "sweep_points": [],
+          "falsification": null,
+          "trace": {},
+          "warnings": [],
+          "solver_notes": "RC steady-state + transient (scipy.solve_ivp)"
+        },
+        {
+          "id": "07db53d8-527c-4ab9-ba29-ac8c281df940",
+          "idea_id": "demo-roofline",
+          "domain": "electrical",
+          "fidelity": "L1_analytical",
+          "status": "pass",
+          "score": 9.0,
+          "metrics": {},
+          "sweep_points": [],
+          "falsification": null,
+          "trace": {},
+          "warnings": [],
+          "solver_notes": "CMOS power model: P=αCV²f, Landauer check, IR drop estimate"
+        },
+        {
+          "id": "0e5938ac-6fe2-47d9-a92e-801f2a31953a",
+          "idea_id": "demo-roofline",
+          "domain": "pdn",
+          "fidelity": "L1_analytical",
+          "status": "marginal",
+          "score": 5.0,
+          "metrics": {
+            "Z_target_mohm": 0.053,
+            "current_a": 750.0,
+            "n_chiplets": 4.0
+          },
+          "sweep_points": [
+            {
+              "param_name": "current_a",
+              "param_value": 375.0,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 1.25,
+              "status": "pass"
+            },
+            {
+              "param_name": "current_a",
+              "param_value": 562.5,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 1.88,
+              "status": "pass"
+            },
+            {
+              "param_name": "current_a",
+              "param_value": 750.0,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 2.5,
+              "status": "pass"
+            },
+            {
+              "param_name": "current_a",
+              "param_value": 937.5,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 3.12,
+              "status": "pass"
+            },
+            {
+              "param_name": "current_a",
+              "param_value": 1125.0,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 3.75,
+              "status": "pass"
+            },
+            {
+              "param_name": "current_a",
+              "param_value": 1500.0,
+              "metric_name": "ir_drop_pct_vdd",
+              "metric_value": 5.0,
+              "status": "fail"
+            }
+          ],
+          "falsification": {
+            "domain": "pdn",
+            "breaking_param": "current_a",
+            "nominal_value": 750.0,
+            "breaking_value": 1500.0,
+            "safety_margin_pct": 50.0,
+            "units": "A",
+            "equation_used": "IR_drop = I × R_pdn = I × 0.03mΩ ≤ 40.0mV",
+            "fix_vector": "50% current headroom."
+          },
+          "trace": {},
+          "warnings": [
+            "4 chiplets: PDN routing complexity scales nonlinearly — inter-chiplet ground bounce and shared bump resources need L2 simulation"
+          ],
+          "solver_notes": "DC IR-drop, RLC impedance (numpy), EM check, decap check"
+        },
+        {
+          "id": "40087b19-2310-44dc-87a2-8fd5ea697918",
+          "idea_id": "demo-roofline",
+          "domain": "data_movement",
+          "fidelity": "L1_analytical",
+          "status": "fail",
+          "score": 2.0,
+          "metrics": {
+            "ridge_point_flops_per_byte": 166.67,
+            "compute_tflops": 400.0,
+            "effective_bandwidth_gb_s": 2400.0,
+            "latency_ns": 25.0,
+            "latency_type_implied": 1.0,
+            "bandwidth_gb_s": 3200.0,
+            "hbm3_limit_gb_s": 1200.0,
+            "bandwidth_vs_hbm3_margin_pct": -166.7
+          },
+          "sweep_points": [],
+          "falsification": {
+            "domain": "data_movement",
+            "breaking_param": "bandwidth_gb_s",
+            "nominal_value": 3200.0,
+            "breaking_value": 1200.0,
+            "safety_margin_pct": -166.7,
+            "units": "GB/s",
+            "equation_used": "HBM3_max = 1200.0 GB/s per stack",
+            "fix_vector": "Multi-stack HBM or novel photonic interconnect to exceed HBM3."
+          },
+          "trace": {},
+          "warnings": [
+            "Bandwidth claim 3200.0 GB/s EXCEEDS HBM3 practical limit 1200.0 GB/s per stack — verify multi-stack or novel interconnect"
+          ],
+          "solver_notes": "Roofline model, latency analysis, bandwidth headroom check"
+        }
+      ],
+      "overall_status": "fail",
+      "overall_score": 5.33,
+      "cross_domain_couplings": [
+        "DATA×THERMAL: 3200 GB/s bandwidth → HBM3 stack thermal budget ~5W per stack — must include in die-level thermal model"
+      ],
+      "recommendation": "kill_physics",
+      "revision_targets": [
+        "[PDN] 50% current headroom.",
+        "[PDN] 4 chiplets: PDN routing complexity scales nonlinearly — inter-chiplet ground bounce and shared bump resources need L2 simulation",
+        "[DATA_MOVEMENT] Multi-stack HBM or novel photonic interconnect to exceed HBM3.",
+        "[DATA_MOVEMENT] Bandwidth claim 3200.0 GB/s EXCEEDS HBM3 practical limit 1200.0 GB/s per stack — verify multi-stack or novel interconnect"
+      ],
+      "fidelity_used": {
+        "thermal": "L1_analytical",
+        "electrical": "L1_analytical",
+        "pdn": "L1_analytical",
+        "data_movement": "L1_analytical"
+      },
+      "total_sim_time_ms": 0
+    },
+    {
+      "id": "dac62df3-a695-4da2-a2f8-47ebfe68d02e",
+      "idea_id": "demo-landauer",
+      "idea_title": "Sub-Landauer Logic Gate at Room Temp",
+      "timestamp": "2026-03-10T15:25:13.976471+00:00",
+      "domain_results": [
+        {
+          "id": "0fb3df3f-ed78-469d-b395-28c799db339c",
+          "idea_id": "demo-landauer",
+          "domain": "electrical",
+          "fidelity": "L1_analytical",
+          "status": "fail",
+          "score": 0.0,
+          "metrics": {
+            "energy_per_op_pj": 1e-12,
+            "landauer_limit_pj": 2.871e-9,
+            "energy_vs_landauer_ratio": 0.0
+          },
+          "sweep_points": [],
+          "falsification": null,
+          "trace": {},
+          "warnings": [
+            "energy_per_op 0.0000 pJ VIOLATES Landauer limit 2.8710e-09 pJ — PHYSICALLY IMPOSSIBLE"
+          ],
+          "solver_notes": "CMOS power model: P=αCV²f, Landauer check, IR drop estimate"
+        }
+      ],
+      "overall_status": "fail",
+      "overall_score": 0.0,
+      "cross_domain_couplings": [],
+      "recommendation": "kill_physics",
+      "revision_targets": [
+        "[ELECTRICAL] energy_per_op 0.0000 pJ VIOLATES Landauer limit 2.8710e-09 pJ — PHYSICALLY IMPOSSIBLE"
+      ],
+      "fidelity_used": {
+        "electrical": "L1_analytical"
+      },
+      "total_sim_time_ms": 0
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "pass": 0,
+    "fail": 4,
+    "marginal": 1,
+    "insufficient_data": 0,
+    "proceed_to_prototype": 0,
+    "kill_physics": 4,
+    "avg_score": 3.91
+  }
+}

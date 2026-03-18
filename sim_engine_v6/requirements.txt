@@ -1,0 +1,12 @@
+# Core simulation
+numpy>=1.26
+scipy>=1.12
+matplotlib>=3.8
+pydantic>=2.5
+
+# DB (same as rd_engine)
+supabase>=2.3
+python-dotenv>=1.0
+
+# Optional
+networkx>=3.2

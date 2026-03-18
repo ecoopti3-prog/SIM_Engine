@@ -1,0 +1,64 @@
+name: Sim Engine — Autonomous Diamond Simulation
+
+on:
+  schedule:
+    - cron: '0 7 * * *'    # Daily at 07:00 UTC — 1 hour after R&D Engine Cycle 1
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode: auto (new diamonds only) | diamonds (all) | demo (test)'
+        required: false
+        default: 'auto'
+      limit:
+        description: 'Max ideas to simulate (default: 5)'
+        required: false
+        default: '5'
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Sim Engine
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          MODE="${{ github.event.inputs.mode }}"
+          LIMIT="${{ github.event.inputs.limit }}"
+
+          if [ -z "$MODE" ]; then MODE="auto"; fi
+          if [ -z "$LIMIT" ]; then LIMIT="5"; fi
+
+          echo "Running Sim Engine: mode=$MODE limit=$LIMIT"
+
+          if [ "$MODE" = "demo" ]; then
+            python main.py --demo
+          elif [ "$MODE" = "diamonds" ]; then
+            python main.py --diamonds --limit $LIMIT
+          else
+            python main.py --auto --limit $LIMIT
+          fi
+
+      - name: Commit simulation reports
+        if: always()
+        run: |
+          git config user.name  "sim-engine-bot"
+          git config user.email "bot@sim-engine"
+          git add reports/output/ || true
+          git diff --staged --quiet || git commit -m "Auto: sim reports $(date -u +%Y-%m-%d)"
+          git push || true
