@@ -156,6 +156,7 @@ def save_sim_result(sim_result, idea_id: str) -> bool:
             "idea_id":          idea_id,
             "idea_title":       sim_result.idea_title,
             "overall_status":   sim_result.overall_status,
+            "sim_status":       sim_result.overall_status,  # RD Engine reads sim_status
             "sim_score":        sim_result.sim_score,
             "critical_failures": sim_result.critical_failures,
             "warnings":         sim_result.warnings,
